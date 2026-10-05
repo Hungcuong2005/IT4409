@@ -1,0 +1,260 @@
+/* =====================================================================
+   Blakletterpress — Trang khuyến mãi thiệp Tết 2026
+   BẢN ĐÃ SỬA LỖI (Box model + Position).
+   Mỗi chỗ sửa có ghi chú FIX gồm: lỗi, triệu chứng, nguyên nhân.
+   ===================================================================== */
+
+/*
+   FIX 1 (box model) — thiếu box-sizing: border-box
+   - Lỗi: selector * chưa có box-sizing: border-box.
+   - Triệu chứng: ba thẻ sản phẩm không nằm một hàng, thẻ thứ ba rớt xuống hàng dưới.
+   - Nguyên nhân: mỗi thẻ rộng (100% - 48px) / 3 nhưng padding 16px và border 1px
+     bị cộng thêm, tổng ba thẻ vượt khung chứa nên flex-wrap đẩy thẻ cuối xuống dòng.
+*/
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: "Segoe UI", Arial, sans-serif;
+	color: #222;
+	background: #f4f1ea;
+	line-height: 1.5;
+}
+
+a {
+	color: inherit;
+}
+
+/* ===== Header / thanh điều hướng ===== */
+
+/*
+   FIX 2 (position) — sticky thiếu top và z-index
+   - Lỗi: .site-header có position: sticky nhưng không có top và z-index.
+   - Triệu chứng: cuộn trang thì menu trôi mất; menu còn có thể bị chữ overlay của hero đè lên.
+   - Nguyên nhân: sticky cần một ngưỡng như top: 0 để biết dính ở đâu;
+     header không có z-index nên thua lớp overlay (z-index: 5).
+*/
+.site-header {
+	background: #2b2b2b;
+	position: sticky;
+	top: 0;
+	z-index: 100;
+}
+
+.header-inner {
+	max-width: 1000px;
+	margin: 0 auto;
+	padding: 16px 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.brand {
+	color: #fff;
+	font-size: 24px;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.main-nav ul {
+	list-style: none;
+	display: flex;
+	gap: 24px;
+}
+
+.main-nav a {
+	color: #ddd;
+	text-decoration: none;
+}
+
+.main-nav a:hover {
+	color: #fff;
+}
+
+/* ===== Hero ===== */
+
+/*
+   FIX 3 (position) — .hero thiếu position: relative
+   - Lỗi: .hero không được định vị.
+   - Triệu chứng: tiêu đề và nút không nằm giữa ảnh, bị căn giữa theo cả cửa sổ
+     trình duyệt, lệch khỏi khung hero và có thể đè lên menu.
+   - Nguyên nhân: .hero-overlay là absolute nhưng không có phần tử cha được định vị,
+     nên lấy khung trang làm mốc thay vì khung hero.
+*/
+.hero {
+	height: 360px;
+	overflow: hidden;
+	position: relative;
+}
+
+/*
+   FIX 4 (box model) — ảnh hero thiếu object-fit và display: block
+   - Lỗi: .hero-bg chỉ có width và height 100%.
+   - Triệu chứng: ảnh hero bị kéo méo hoặc lệch tỉ lệ; dưới ảnh có khe hở nhỏ.
+   - Nguyên nhân: ảnh bị ép kích thước mà không có cách giữ tỉ lệ;
+     ảnh là phần tử inline nên có khoảng trống của dòng chữ bên dưới.
+*/
+.hero-bg {
+	width: 100%;
+	height: 100%;
+	display: block;
+	object-fit: cover;
+}
+
+.hero-overlay {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 80%;
+	max-width: 560px;
+	text-align: center;
+	color: #fff;
+	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+	z-index: 5;
+}
+
+.hero-overlay h1 {
+	font-size: 34px;
+	margin-bottom: 12px;
+}
+
+.hero-overlay p {
+	font-size: 18px;
+	margin-bottom: 20px;
+}
+
+.hero-btn {
+	display: inline-block;
+	padding: 12px 28px;
+	background: #c0392b;
+	color: #fff;
+	text-decoration: none;
+	border-radius: 4px;
+}
+
+/* ===== Khu sản phẩm ===== */
+.products {
+	max-width: 1000px;
+	margin: 48px auto;
+	padding: 0 24px;
+}
+
+.products h2 {
+	margin-bottom: 24px;
+	font-size: 28px;
+}
+
+.card-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+}
+
+/*
+   FIX 5 (box model) — .card có height cố định
+   - Lỗi: height: 300px.
+   - Triệu chứng: chữ trong thẻ tràn ra ngoài đáy, lòi khỏi viền trắng.
+   - Nguyên nhân: nội dung thật (ảnh, tiêu đề, hai đoạn mô tả, giá) cao hơn 300px
+     nhưng chiều cao bị khóa cứng. Đổi thành height: auto.
+
+   FIX 6 (position) — .card thiếu position: relative
+   - Lỗi: .card không được định vị.
+   - Triệu chứng: ba nhãn "-20%" dồn chồng lên nhau ở góc trên phải của trang,
+     không nằm trên từng thẻ.
+   - Nguyên nhân: .badge là absolute nhưng thẻ cha chưa được định vị,
+     nên nhãn tính vị trí theo tổ tiên gần nhất có position hoặc theo cả trang.
+*/
+.card {
+	flex: 0 0 calc((100% - 48px) / 3);
+	height: auto;
+	background: #fff;
+	border: 1px solid #e0d8c8;
+	border-radius: 8px;
+	padding: 16px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+	position: relative;
+}
+
+.badge {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	background: #c0392b;
+	color: #fff;
+	font-size: 14px;
+	font-weight: bold;
+	padding: 4px 10px;
+	border-radius: 20px;
+}
+
+/*
+   FIX 7 (box model) — ảnh trong thẻ không bị giới hạn kích thước
+   - Lỗi: .card img chỉ có display: block.
+   - Triệu chứng: ảnh to hơn thẻ, tràn ngang ra ngoài viền, đẩy bố cục lệch.
+   - Nguyên nhân: ảnh giữ kích thước gốc, không bị ràng buộc bởi chiều rộng thẻ.
+     Thêm width: 100%, height cố định và object-fit: cover.
+*/
+.card img {
+	display: block;
+	width: 100%;
+	height: 180px;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+.card-body h3 {
+	margin: 12px 0 8px;
+	font-size: 20px;
+}
+
+.card-body p {
+	margin-bottom: 8px;
+	font-size: 15px;
+	color: #555;
+}
+
+.card-body .price {
+	color: #c0392b;
+	font-weight: bold;
+	font-size: 18px;
+}
+
+/* ===== Nút lên đầu trang ===== */
+
+/*
+   FIX 8 (position) — nút ↑ dùng top thay vì bottom
+   - Lỗi: top: 24px.
+   - Triệu chứng: nút "↑" nằm ở góc trên bên phải màn hình.
+   - Nguyên nhân: sai thuộc tính căn vị trí; yêu cầu neo theo cạnh dưới
+     nên phải dùng bottom. Thêm z-index để nút luôn nổi trên nội dung.
+*/
+.back-to-top {
+	position: fixed;
+	bottom: 24px;
+	right: 24px;
+	z-index: 90;
+	width: 48px;
+	height: 48px;
+	background: #2b2b2b;
+	color: #fff;
+	text-align: center;
+	line-height: 48px;
+	font-size: 22px;
+	text-decoration: none;
+	border-radius: 50%;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+	margin-top: 48px;
+	padding: 32px 24px;
+	background: #2b2b2b;
+	color: #cfcfcf;
+	text-align: center;
+	font-size: 14px;
+}
